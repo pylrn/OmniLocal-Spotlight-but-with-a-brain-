@@ -280,11 +280,16 @@ pub fn run() {
                 .ok()
                 .flatten()
                 .unwrap_or_else(|| "nomic-embed-text".to_string());
+            let gemini_api_key = db::get_setting(&conn, "gemini_api_key")
+                .ok()
+                .flatten()
+                .unwrap_or_else(|| "".to_string());
 
             let provider = AiProvider::from_settings(
                 &ai_provider_type,
                 &ollama_url,
                 &lmstudio_url,
+                &gemini_api_key,
                 &embed_model,
             );
 
