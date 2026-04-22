@@ -1,0 +1,188 @@
+/* SmartSearch — Global Design System */
+
+/* ═══════════════════════════════════════════════════════════════
+   CSS Custom Properties (Design Tokens)
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Premium Dark Mode - Deep Space Cyber-Industrial */
+  --bg-primary: hsl(240, 12%, 4%);
+  --bg-secondary: hsl(240, 12%, 6%);
+  --bg-tertiary: hsl(240, 12%, 10%);
+  --bg-elevated: hsl(240, 12%, 14%);
+  --bg-glass: hsla(240, 12%, 6%, 0.6);
+  --bg-glass-heavy: hsla(240, 15%, 8%, 0.85);
+
+  --text-primary: hsl(0, 0%, 100%);
+  --text-secondary: hsl(240, 10%, 75%);
+  --text-tertiary: hsl(240, 10%, 55%);
+  --text-accent: hsl(180, 100%, 80%);
+
+  /* High contrast neon accents */
+  --accent-primary: hsl(180, 100%, 50%); /* Cyan */
+  --accent-primary-hover: hsl(180, 100%, 65%);
+  --accent-secondary: hsl(320, 100%, 55%); /* Magenta */
+  --accent-gradient: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+
+  --border-color: hsla(0, 0%, 100%, 0.1);
+  --border-focus: hsla(180, 100%, 50%, 0.6);
+
+  /* Status colors */
+  --status-success: hsl(150, 100%, 45%);
+  --status-warning: hsl(40, 100%, 55%);
+  --status-error: hsl(350, 100%, 65%);
+  --status-info: var(--accent-primary);
+
+  /* Vivid File type colors for dark mode */
+  --filetype-md: hsl(210, 100%, 65%);
+  --filetype-ts: hsl(45, 100%, 60%);
+  --filetype-js: hsl(45, 100%, 60%);
+  --filetype-py: hsl(150, 80%, 55%);
+  --filetype-rs: hsl(20, 100%, 65%);
+  --filetype-go: hsl(190, 90%, 60%);
+  --filetype-default: hsl(240, 10%, 60%);
+
+  /* Score colors */
+  --score-high: hsl(150, 100%, 50%);
+  --score-medium: hsl(40, 100%, 55%);
+  --score-low: hsl(240, 10%, 50%);
+
+  /* Spacing */
+  --space-xs: 6px;
+  --space-sm: 12px;
+  --space-md: 20px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+  --space-2xl: 64px;
+
+  /* Typography - Importing Outfit for striking modern feel */
+  --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.85rem;
+  --font-size-base: 0.95rem;
+  --font-size-md: 1.1rem;
+  --font-size-lg: 1.4rem;
+  --font-size-xl: 1.8rem;
+
+  /* Border radius */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* Shadows with Neon Glow */
+  --shadow-sm: 0 2px 8px hsla(0, 0%, 0%, 0.4);
+  --shadow-md: 0 8px 24px hsla(0, 0%, 0%, 0.6);
+  --shadow-lg: 0 16px 48px hsla(0, 0%, 0%, 0.8);
+  --shadow-glow: 0 0 20px hsla(180, 100%, 50%, 0.2);
+  --shadow-glow-magenta: 0 0 20px hsla(320, 100%, 55%, 0.2);
+
+  /* Fluid Transitions */
+  --transition-fast: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-base: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 600ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Z-index scale */
+  --z-base: 0;
+  --z-elevated: 10;
+  --z-overlay: 100;
+  --z-modal: 1000;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Global Reset & Base
+   ═══════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: local('Inter');
+  font-display: swap;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Scrollbar Styling
+   ═══════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsla(220, 15%, 40%, 0.3);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsla(220, 15%, 40%, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Utility Classes
+   ═══════════════════════════════════════════════════════════════ */
+
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.text-gradient {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Focus Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Selection
+   ═══════════════════════════════════════════════════════════════ */
+
+::selection {
+  background: hsla(217, 91%, 60%, 0.3);
+  color: var(--text-primary);
+}
