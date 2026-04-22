@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { listCollections, addCollection, removeCollection, scanCollections, listIndexedFiles, removeManualFile } from '../../lib/tauri';
+import { getSetting, setSetting, listCollections, addCollection, removeCollection, scanCollections, listIndexedFiles, removeManualFile } from '../../lib/tauri';
 import { open } from '@tauri-apps/plugin-dialog';
 import type { Collection, ScanResult, DocumentRow } from '../../lib/tauri';
 import styles from './Settings.module.css';
