@@ -1,0 +1,68 @@
+[package]
+name = "smart-search"
+version = "0.1.0"
+description = "SmartSearch — Intelligent Desktop Search Engine"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "smart_search_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Tauri framework
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-dialog = "2"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Database
+rusqlite = { version = "0.32", features = ["bundled", "vtab"] }
+
+# File system watching
+notify = "7"
+notify-debouncer-mini = "0.5"
+
+# HTTP client (for Ollama/LM Studio APIs)
+reqwest = { version = "0.12", features = ["json"] }
+
+# Fast file hashing
+blake3 = "1"
+
+# File system utilities
+walkdir = "2"
+glob = "0.3"
+directories = "5"
+
+# PDF & DOCX Native Parsing
+pdf-extract = "0.10.0"
+zip = "0.6.3"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# UUID generation (for chunk IDs, etc.)
+uuid = { version = "1", features = ["v4"] }
+
+# Date/time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Sentence segmentation
+unicode-segmentation = "1"
+
+# macOS active window detection
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString", "NSRunLoop"] }
+objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSRunningApplication"] }
