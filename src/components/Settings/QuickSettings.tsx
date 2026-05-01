@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { checkAiStatus, getSetting, setSetting, testAiProvider } from '../../lib/tauri';
 import type { ProviderStatus } from '../../lib/tauri';
 import styles from './QuickSettings.module.css';

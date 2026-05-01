@@ -27,3 +27,5 @@ dist-ssr
 .rustup/
 src-tauri/target/
 node_modules/
+.data/
+src-tauri/.data/

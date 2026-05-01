@@ -363,11 +363,45 @@
   font-size: 0.88rem;
 }
 
+.titleLink,
+.pathLink {
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.titleLink {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.pathLink {
+  color: var(--text-tertiary);
+  font-size: 0.88rem;
+}
+
+.titleLink:hover,
+.pathLink:hover {
+  color: var(--accent-secondary);
+  text-decoration: underline;
+}
+
 .tableStats {
   display: flex;
   gap: 1rem;
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 .emptyTable {

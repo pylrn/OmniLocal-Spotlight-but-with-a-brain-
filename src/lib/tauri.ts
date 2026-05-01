@@ -197,6 +197,10 @@ export async function retryFailedEmbeddings(): Promise<void> {
   return invoke('retry_failed_embeddings');
 }
 
+export async function retryDocumentEmbeddings(documentId: number): Promise<void> {
+  return invoke('retry_document_embeddings', { documentId });
+}
+
 export async function reembedAll(): Promise<void> {
   return invoke('reembed_all');
 }

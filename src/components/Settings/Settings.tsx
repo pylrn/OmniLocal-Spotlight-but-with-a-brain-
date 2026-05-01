@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { open } from '@tauri-apps/plugin-dialog';
+import { openPath } from '@tauri-apps/plugin-opener';
 import type {
   Collection,
   DocumentRow,
@@ -26,6 +27,7 @@ import {
   reembedAll,
   removeCollection,
   removeManualFile,
+  retryDocumentEmbeddings,
   retryFailedEmbeddings,
   scanCollections,
   setSetting,
@@ -213,7 +215,20 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
   async function handleRemoveFile(id: number, title: string) {
     if (!confirm(`Remove "${title}" from the SmartSearch index?`)) return;
     await removeManualFile(id);
-    await refreshCollections();
+    await Promise.all([refreshCollections(), refreshDocuments(), refreshOverview()]);
+  }
+
+  async function handleRetryDocument(id: number) {
+    await retryDocumentEmbeddings(id);
+    await Promise.all([refreshDocuments(), refreshOverview()]);
+  }
+
+  async function handleOpenPath(path: string) {
+    try {
+      await openPath(path);
+    } catch (error) {
+      console.error('Failed to open path:', error);
+    }
   }
 
   async function handleBrowse() {
@@ -290,7 +305,12 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
 
           <div className={styles.contentScroll}>
             {activeSection === 'overview' && overview && (
-              <OverviewSection overview={overview} runtime={runtime} providerStatus={providerStatus} />
+              <OverviewSection
+                overview={overview}
+                runtime={runtime}
+                providerStatus={providerStatus}
+                onOpenPath={handleOpenPath}
+              />
             )}
 
             {activeSection === 'indexing' && (
@@ -385,13 +405,44 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
                       pendingDocuments.map((row) => (
                         <div key={row.document_id} className={styles.tableRow}>
                           <div className={styles.tableMain}>
-                            <strong>{row.title || row.path.split('/').pop()}</strong>
-                            <span>{row.collection_name} · {row.path}</span>
+                            <button
+                              type="button"
+                              className={styles.titleLink}
+                              onClick={() => handleOpenPath(row.abs_path)}
+                            >
+                              {row.title || row.path.split('/').pop()}
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.pathLink}
+                              onClick={() => handleOpenPath(row.abs_path)}
+                            >
+                              {row.collection_name} · {row.path}
+                            </button>
                           </div>
                           <div className={styles.tableStats}>
                             <span>{row.embedded_chunk_count}/{row.chunk_count} embedded</span>
                             <span>{row.pending_chunk_count} pending</span>
                             <span>{row.failed_chunk_count} failed</span>
+                          </div>
+                          <div className={styles.rowActions}>
+                            <button
+                              type="button"
+                              className={styles.secondaryButton}
+                              disabled={row.failed_chunk_count === 0}
+                              onClick={() => handleRetryDocument(row.document_id)}
+                            >
+                              Retry
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.ghostDangerButton}
+                              onClick={() =>
+                                handleRemoveFile(row.document_id, row.title || row.path.split('/').pop() || 'file')
+                              }
+                            >
+                              Remove
+                            </button>
                           </div>
                         </div>
                       ))
@@ -411,13 +462,44 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
                     {documentStatuses.map((row) => (
                       <div key={row.document_id} className={styles.tableRow}>
                         <div className={styles.tableMain}>
-                          <strong>{row.title || row.path.split('/').pop()}</strong>
-                          <span>{row.abs_path}</span>
+                          <button
+                            type="button"
+                            className={styles.titleLink}
+                            onClick={() => handleOpenPath(row.abs_path)}
+                          >
+                            {row.title || row.path.split('/').pop()}
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.pathLink}
+                            onClick={() => handleOpenPath(row.abs_path)}
+                          >
+                            {row.abs_path}
+                          </button>
                         </div>
                         <div className={styles.tableStats}>
                           <span>{row.chunk_count} chunks</span>
                           <span>{row.embedded_chunk_count} embedded</span>
                           <span>{formatRelativeDate(row.last_indexed)}</span>
+                        </div>
+                        <div className={styles.rowActions}>
+                          <button
+                            type="button"
+                            className={styles.secondaryButton}
+                            disabled={row.failed_chunk_count === 0}
+                            onClick={() => handleRetryDocument(row.document_id)}
+                          >
+                            Retry
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.ghostDangerButton}
+                            onClick={() =>
+                              handleRemoveFile(row.document_id, row.title || row.path.split('/').pop() || 'file')
+                            }
+                          >
+                            Remove
+                          </button>
                         </div>
                         {row.last_error && <div className={styles.errorText}>{row.last_error}</div>}
                       </div>
@@ -449,7 +531,13 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
                         >
                           <div className={styles.tableMain}>
                             <strong>{collection.name}</strong>
-                            <span>{collection.path}</span>
+                            <button
+                              type="button"
+                              className={styles.pathLink}
+                              onClick={() => handleOpenPath(collection.path)}
+                            >
+                              {collection.path}
+                            </button>
                           </div>
                           <div className={styles.tableStats}>
                             <span>{collection.doc_count} documents</span>
@@ -506,10 +594,23 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
                       manualFiles.map((doc) => (
                         <div key={doc.id} className={styles.tableRow}>
                           <div className={styles.tableMain}>
-                            <strong>{doc.title || doc.path.split('/').pop()}</strong>
-                            <span>{doc.abs_path}</span>
+                            <button
+                              type="button"
+                              className={styles.titleLink}
+                              onClick={() => handleOpenPath(doc.abs_path)}
+                            >
+                              {doc.title || doc.path.split('/').pop()}
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.pathLink}
+                              onClick={() => handleOpenPath(doc.abs_path)}
+                            >
+                              {doc.abs_path}
+                            </button>
                           </div>
                           <button
+                            type="button"
                             className={styles.ghostDangerButton}
                             onClick={() => handleRemoveFile(doc.id, doc.title || 'file')}
                           >
@@ -607,10 +708,12 @@ function OverviewSection({
   overview,
   runtime,
   providerStatus,
+  onOpenPath,
 }: {
   overview: IndexOverview;
   runtime: EmbeddingRuntimeStatus | null;
   providerStatus: ProviderStatus | null;
+  onOpenPath: (path: string) => Promise<void>;
 }) {
   return (
     <section className={styles.sectionStack}>
@@ -634,7 +737,18 @@ function OverviewSection({
         <div className={styles.statusCard}>
           <strong>{runtime?.phase || 'idle'}</strong>
           <span>{runtime?.message || 'Waiting for indexing work'}</span>
-          {runtime?.current_path && <span>Current file: {runtime.current_path}</span>}
+          {runtime?.current_path && (
+            <span>
+              Current file:{' '}
+              <button
+                type="button"
+                className={styles.pathLink}
+                onClick={() => onOpenPath(runtime.current_path!)}
+              >
+                {runtime.current_path}
+              </button>
+            </span>
+          )}
         </div>
       </div>
 
