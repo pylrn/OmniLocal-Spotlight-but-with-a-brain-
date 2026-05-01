@@ -170,3 +170,31 @@ pub fn reembed_all(state: State<'_, AppState>) -> Result<(), String> {
 
     Ok(())
 }
+
+#[tauri::command]
+pub fn bulk_retry_documents(state: State<'_, AppState>, document_ids: Vec<i64>) -> Result<(), String> {
+    {
+        let conn = state.db.lock().map_err(|e| format!("Lock error: {}", e))?;
+        for doc_id in document_ids {
+            db::retry_failed_chunks_for_document(&conn, doc_id)
+                .map_err(|e| format!("Failed to retry document {}: {}", doc_id, e))?;
+        }
+    }
+
+    state
+        .embedding_tx
+        .send(EmbedCommand::Kick)
+        .map_err(|e| format!("Failed to queue bulk retry: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn bulk_remove_documents(state: State<'_, AppState>, document_ids: Vec<i64>) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| format!("Lock error: {}", e))?;
+    for doc_id in document_ids {
+        db::remove_document(&conn, doc_id)
+            .map_err(|e| format!("Failed to remove document {}: {}", doc_id, e))?;
+    }
+    Ok(())
+}

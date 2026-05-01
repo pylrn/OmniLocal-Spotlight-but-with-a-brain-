@@ -182,6 +182,16 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.batchActions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  width: 100%;
+  order: 3;
 }
 
 .cardHeader h4 {
@@ -206,6 +216,13 @@
 .metricCard {
   padding: 1.2rem;
   transition: var(--transition-base);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 5rem;
 }
 
 .metricCard span {
@@ -227,23 +244,81 @@
 
 .metricWarning {
   border-color: var(--status-warning);
+  background: rgba(251, 146, 60, 0.05);
+}
+
+.metricWarning strong {
+  color: var(--status-warning);
+  text-shadow: 0 0 10px rgba(251, 146, 60, 0.5);
 }
 
 .metricError {
   border-color: var(--status-error);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.metricError strong {
+  color: var(--status-error);
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
 .statusCard {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.8rem;
   padding: 1.2rem;
   color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
 }
 
-.statusCard strong {
+.statusCard.activeStatus {
+  background: rgba(255, 142, 60, 0.05);
+  border: 1px solid rgba(255, 142, 60, 0.2);
+}
+
+.statusHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.phaseLabel {
   color: var(--accent-secondary);
   text-shadow: var(--glow-orange);
+  text-transform: capitalize;
+  font-size: 1.1rem;
+}
+
+.embeddingIndicator {
+  color: var(--accent-secondary);
+  font-size: 1.2rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.statusMessage {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.currentPathSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.currentPathLabel {
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
 .detailList {
@@ -345,6 +420,26 @@
   gap: 1rem;
 }
 
+.rowCheckbox {
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.checkboxLabel input {
+  cursor: pointer;
+}
+
 .tableMain {
   display: flex;
   flex-direction: column;
@@ -415,6 +510,24 @@
   color: var(--status-error);
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.errorBadge {
+  margin-top: 0.8rem;
+  padding: 0.6rem 0.9rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--status-error);
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.errorBadge span {
+  font-weight: 700;
 }
 
 .logBox {

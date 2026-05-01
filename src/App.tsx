@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { openPath } from '@tauri-apps/plugin-opener';
 import SearchBar from './components/SearchBar/SearchBar';
 import ResultCard from './components/ResultCard/ResultCard';
+import SearchFilters from './components/SearchFilters/SearchFilters';
 import InsightPanel from './components/InsightPanel/InsightPanel';
 import QuickSettings from './components/Settings/QuickSettings';
 import AdvancedSettings from './components/Settings/Settings';
@@ -24,6 +25,9 @@ export default function App() {
   const [insightLoading, setInsightLoading] = useState(false);
   const [insightError, setInsightError] = useState<string | null>(null);
   const [insightDismissed, setInsightDismissed] = useState(false);
+
+  const [fileTypeFilter, setFileTypeFilter] = useState<string | null>(null);
+  const [collectionFilter, setCollectionFilter] = useState<string | null>(null);
 
   const handleAddFiles = useCallback(async () => {
     try {
@@ -103,6 +107,15 @@ export default function App() {
     }
   };
 
+  const uniqueFileTypes = Array.from(new Set(results.map(r => r.file_type))).sort();
+  const uniqueCollections = Array.from(new Set(results.map(r => r.collection_name))).sort();
+
+  const filteredResults = results.filter(result => {
+    if (fileTypeFilter && result.file_type !== fileTypeFilter) return false;
+    if (collectionFilter && result.collection_name !== collectionFilter) return false;
+    return true;
+  });
+
   return (
     <div className="appShell">
       <AuroraBackdrop />
@@ -144,6 +157,22 @@ export default function App() {
               <NoResults />
             ) : (
               <div className="resultsList">
+                {results.length > 0 && (
+                  <SearchFilters
+                    fileTypes={uniqueFileTypes}
+                    collections={uniqueCollections}
+                    selectedFileType={fileTypeFilter}
+                    selectedCollection={collectionFilter}
+                    totalResults={results.length}
+                    filteredResults={filteredResults.length}
+                    onFileTypeChange={setFileTypeFilter}
+                    onCollectionChange={setCollectionFilter}
+                    onClearFilters={() => {
+                      setFileTypeFilter(null);
+                      setCollectionFilter(null);
+                    }}
+                  />
+                )}
                 <AnimatePresence>
                   {(insightLoading || insight || insightError) && !insightDismissed && (
                     <InsightPanel
@@ -158,7 +187,7 @@ export default function App() {
                   )}
                 </AnimatePresence>
                 <AnimatePresence mode="popLayout">
-                  {results.map((result, index) => (
+                  {filteredResults.map((result, index) => (
                     <ResultCard
                       key={`${result.document_id}-${result.chunk_id}`}
                       result={result}

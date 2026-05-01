@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import { openPath } from '@tauri-apps/plugin-opener';
 import type { SearchResult } from '../../lib/tauri';
 import {
   getFileTypeColor,
@@ -19,6 +20,15 @@ export default function ResultCard({ result, index, onClick }: ResultCardProps) 
   const scorePercent = Math.round(result.score * 100);
   const filetypeColor = getFileTypeColor(result.file_type);
   const fileLabel = getFileTypeIcon(result.file_type);
+
+  const handleOpenPath = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await openPath(result.abs_path);
+    } catch (error) {
+      console.error('Failed to open file:', error);
+    }
+  };
 
   return (
     <motion.div
@@ -56,7 +66,16 @@ export default function ResultCard({ result, index, onClick }: ResultCardProps) 
       </div>
 
       <div className={styles.collectionPath}>
-        {result.collection_name} · {result.path}
+        <span className={styles.collectionName}>{result.collection_name}</span>
+        <span className={styles.pathSeparator}>·</span>
+        <button
+          className={styles.pathLink}
+          onClick={handleOpenPath}
+          title={`Open ${result.abs_path}`}
+          aria-label="Open file"
+        >
+          {result.path}
+        </button>
       </div>
 
       <div className={styles.snippet}>

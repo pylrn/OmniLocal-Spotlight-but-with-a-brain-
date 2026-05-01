@@ -14,6 +14,8 @@ import type {
 } from '../../lib/tauri';
 import {
   addCollection,
+  bulkRemoveDocuments,
+  bulkRetryDocuments,
   checkAiStatus,
   formatRelativeDate,
   getEmbeddingRuntime,
@@ -69,6 +71,8 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
   const [embedBatchSize, setEmbedBatchSize] = useState('12');
   const [queryApiKey, setQueryApiKey] = useState('');
   const [queryModel, setQueryModel] = useState('gemini-2.0-flash-lite');
+
+  const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     let unlistenEmbedding: (() => void) | undefined;
@@ -221,6 +225,42 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
   async function handleRetryDocument(id: number) {
     await retryDocumentEmbeddings(id);
     await Promise.all([refreshDocuments(), refreshOverview()]);
+  }
+
+  async function handleBulkRetry() {
+    if (selectedDocuments.size === 0) return;
+    if (!confirm(`Retry embeddings for ${selectedDocuments.size} document(s)?`)) return;
+    
+    await bulkRetryDocuments(Array.from(selectedDocuments));
+    setSelectedDocuments(new Set());
+    await Promise.all([refreshDocuments(), refreshOverview()]);
+  }
+
+  async function handleBulkRemove() {
+    if (selectedDocuments.size === 0) return;
+    if (!confirm(`Remove ${selectedDocuments.size} document(s) from index? This cannot be undone.`)) return;
+    
+    await bulkRemoveDocuments(Array.from(selectedDocuments));
+    setSelectedDocuments(new Set());
+    await Promise.all([refreshCollections(), refreshDocuments(), refreshOverview()]);
+  }
+
+  function handleSelectDocument(docId: number) {
+    const newSet = new Set(selectedDocuments);
+    if (newSet.has(docId)) {
+      newSet.delete(docId);
+    } else {
+      newSet.add(docId);
+    }
+    setSelectedDocuments(newSet);
+  }
+
+  function handleSelectAll() {
+    if (selectedDocuments.size === documentStatuses.length && documentStatuses.length > 0) {
+      setSelectedDocuments(new Set());
+    } else {
+      setSelectedDocuments(new Set(documentStatuses.map(d => d.document_id)));
+    }
   }
 
   async function handleOpenPath(path: string) {
@@ -444,6 +484,11 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
                               Remove
                             </button>
                           </div>
+                          {row.last_error && (
+                            <div className={styles.errorBadge}>
+                              <span>⚠</span> {row.last_error}
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
@@ -456,11 +501,45 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
                       <h4>Document library</h4>
                       <p>Every indexed document with chunk counts, embedding status, and the latest indexing error.</p>
                     </div>
+                    {documentStatuses.length > 0 && (
+                      <div className={styles.batchActions}>
+                        <label className={styles.checkboxLabel}>
+                          <input
+                            type="checkbox"
+                            checked={selectedDocuments.size === documentStatuses.length && documentStatuses.length > 0}
+                            onChange={handleSelectAll}
+                          />
+                          Select All
+                        </label>
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          disabled={selectedDocuments.size === 0}
+                          onClick={handleBulkRetry}
+                        >
+                          Retry Selected ({selectedDocuments.size})
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.ghostDangerButton}
+                          disabled={selectedDocuments.size === 0}
+                          onClick={handleBulkRemove}
+                        >
+                          Remove Selected ({selectedDocuments.size})
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className={styles.table}>
                     {documentStatuses.map((row) => (
                       <div key={row.document_id} className={styles.tableRow}>
+                        <input
+                          type="checkbox"
+                          className={styles.rowCheckbox}
+                          checked={selectedDocuments.has(row.document_id)}
+                          onChange={() => handleSelectDocument(row.document_id)}
+                        />
                         <div className={styles.tableMain}>
                           <button
                             type="button"
@@ -501,7 +580,11 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
                             Remove
                           </button>
                         </div>
-                        {row.last_error && <div className={styles.errorText}>{row.last_error}</div>}
+                        {row.last_error && (
+                          <div className={styles.errorBadge}>
+                            <span>⚠</span> {row.last_error}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -734,12 +817,15 @@ function OverviewSection({
           </div>
         </div>
 
-        <div className={styles.statusCard}>
-          <strong>{runtime?.phase || 'idle'}</strong>
-          <span>{runtime?.message || 'Waiting for indexing work'}</span>
+        <div className={`${styles.statusCard} ${runtime?.phase === 'embedding' ? styles.activeStatus : ''}`}>
+          <div className={styles.statusHeader}>
+            <strong className={styles.phaseLabel}>{runtime?.phase || 'idle'}</strong>
+            {runtime?.phase === 'embedding' && <span className={styles.embeddingIndicator}>●</span>}
+          </div>
+          <span className={styles.statusMessage}>{runtime?.message || 'Waiting for indexing work'}</span>
           {runtime?.current_path && (
-            <span>
-              Current file:{' '}
+            <div className={styles.currentPathSection}>
+              <span className={styles.currentPathLabel}>Current file:</span>
               <button
                 type="button"
                 className={styles.pathLink}
@@ -747,7 +833,7 @@ function OverviewSection({
               >
                 {runtime.current_path}
               </button>
-            </span>
+            </div>
           )}
         </div>
       </div>

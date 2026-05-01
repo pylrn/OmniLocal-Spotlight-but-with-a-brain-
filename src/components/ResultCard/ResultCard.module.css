@@ -136,6 +136,38 @@
   color: var(--text-tertiary);
   font-size: 0.8rem;
   padding-left: 3.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.collectionName {
+  color: var(--text-tertiary);
+}
+
+.pathSeparator {
+  color: var(--text-tertiary);
+  opacity: 0.6;
+}
+
+.pathLink {
+  background: none;
+  border: none;
+  color: var(--accent-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.2s ease;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 142, 60, 0.3);
+  text-underline-offset: 0.2em;
+}
+
+.pathLink:hover {
+  color: var(--accent-primary);
+  text-decoration-color: rgba(255, 62, 109, 0.5);
 }
 
 .snippet {

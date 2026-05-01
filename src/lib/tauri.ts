@@ -205,6 +205,14 @@ export async function reembedAll(): Promise<void> {
   return invoke('reembed_all');
 }
 
+export async function bulkRetryDocuments(documentIds: number[]): Promise<void> {
+  return invoke('bulk_retry_documents', { documentIds });
+}
+
+export async function bulkRemoveDocuments(documentIds: number[]): Promise<void> {
+  return invoke('bulk_remove_documents', { documentIds });
+}
+
 export async function getForegroundApp(): Promise<string | null> {
   return invoke('get_foreground_app');
 }
