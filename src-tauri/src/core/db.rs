@@ -305,9 +305,12 @@ pub fn list_documents(conn: &Connection) -> Result<Vec<DocumentRow>> {
     rows.collect()
 }
 
-pub fn list_document_statuses(conn: &Connection) -> Result<Vec<DocumentStatusRow>> {
-    let mut stmt = conn.prepare(
-        "SELECT
+pub fn list_document_statuses(
+    conn: &Connection,
+    limit: Option<usize>,
+    offset: Option<usize>,
+) -> Result<Vec<DocumentStatusRow>> {
+    let mut sql = "SELECT
             d.id,
             d.title,
             d.path,
@@ -325,8 +328,17 @@ pub fn list_document_statuses(conn: &Connection) -> Result<Vec<DocumentStatusRow
          LEFT JOIN chunks ch ON ch.document_id = d.id
          WHERE d.is_active = 1
          GROUP BY d.id, d.title, d.path, d.abs_path, d.file_type, c.name
-         ORDER BY d.last_indexed DESC",
-    )?;
+         ORDER BY d.last_indexed DESC"
+        .to_string();
+
+    match (limit, offset) {
+        (Some(l), Some(o)) => sql.push_str(&format!(" LIMIT {} OFFSET {}", l, o)),
+        (Some(l), None) => sql.push_str(&format!(" LIMIT {}", l)),
+        (None, Some(o)) => sql.push_str(&format!(" LIMIT -1 OFFSET {}", o)),
+        (None, None) => {}
+    }
+
+    let mut stmt = conn.prepare(&sql)?;
 
     let rows = stmt.query_map([], |row| {
         Ok(DocumentStatusRow {

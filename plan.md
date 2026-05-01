@@ -739,6 +739,21 @@ The primary interface is a floating, always-accessible search bar triggered by a
 
 ---
 
+## Phase 6: Performance & Stability Overhaul (Completed May 2026)
+
+### Objective
+Resolve critical UI lag, application crashes, and backend memory bottlenecks identified during architectural review and large-scale indexing.
+
+### Tasks Completed
+- [x] **Backend Pagination**: Modified `list_document_statuses` to support `limit` and `offset`, reducing IPC payload size and JSON serialization overhead.
+- [x] **Frontend Throttling**: Implemented a 3-second throttle on document refreshes during background indexing to prevent "Event Storming" and UI freezes.
+- [x] **Library Virtualization**: Implemented a "Load More" pagination system in the Library view to prevent the browser from attempting to render thousands of DOM nodes simultaneously.
+- [x] **Vector Search Optimization**: Verified and finalized the `sqlite-vec` HNSW implementation, moving from $O(n)$ RAM scans to disk-backed ANN search.
+- [x] **Codebase Refactoring**: Completed the split of `lib.rs` into specialized modules (`commands/`, `workers/`, `core/`) and implemented Trait-based abstractions for AI Providers.
+- [x] **Security Hardening**: Migrated sensitive API keys from plaintext SQLite storage to the OS-native Keychain.
+
+---
+
 ## Open Questions
 
 > [!NOTE]

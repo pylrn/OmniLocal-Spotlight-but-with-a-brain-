@@ -149,8 +149,8 @@ export async function listIndexedFiles(): Promise<DocumentRow[]> {
   return invoke('list_indexed_files');
 }
 
-export async function listDocumentStatuses(): Promise<DocumentStatusRow[]> {
-  return invoke('list_document_statuses');
+export async function listDocumentStatuses(limit?: number, offset?: number): Promise<DocumentStatusRow[]> {
+  return invoke('list_document_statuses', { limit: limit || null, offset: offset || null });
 }
 
 export async function removeManualFile(documentId: number): Promise<void> {

@@ -52,9 +52,14 @@ fn provider_health_from_status(status: ProviderStatus) -> ProviderHealth {
 }
 
 #[tauri::command]
-pub fn list_document_statuses(state: State<'_, AppState>) -> Result<Vec<DocumentStatusRow>, String> {
+pub fn list_document_statuses(
+    state: State<'_, AppState>,
+    limit: Option<usize>,
+    offset: Option<usize>,
+) -> Result<Vec<DocumentStatusRow>, String> {
     let conn = state.db.lock().map_err(|e| format!("Lock error: {}", e))?;
-    db::list_document_statuses(&conn).map_err(|e| format!("Failed to list document statuses: {}", e))
+    db::list_document_statuses(&conn, limit, offset)
+        .map_err(|e| format!("Failed to list document statuses: {}", e))
 }
 
 #[tauri::command]

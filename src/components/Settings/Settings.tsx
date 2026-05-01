@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { open } from '@tauri-apps/plugin-dialog';
 import { openPath } from '@tauri-apps/plugin-opener';
@@ -72,6 +72,10 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
   const [queryApiKey, setQueryApiKey] = useState('');
   const [queryModel, setQueryModel] = useState('gemini-2.0-flash-lite');
 
+  const [pageSize] = useState(50);
+  const [hasMoreDocuments, setHasMoreDocuments] = useState(true);
+  const [lastRefreshTime, setLastRefreshTime] = useState(0);
+
   const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(new Set());
 
   useEffect(() => {
@@ -95,7 +99,13 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
             }
           : current,
       );
-      void refreshDocuments();
+
+      // Throttle document refresh to once every 3 seconds
+      const now = Date.now();
+      if (now - lastRefreshTime > 3000) {
+        setLastRefreshTime(now);
+        void refreshDocuments(false);
+      }
     }).then((unlisten) => {
       unlistenEmbedding = unlisten;
     });
@@ -110,7 +120,7 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
       unlistenEmbedding?.();
       unlistenIndex?.();
     };
-  }, []);
+  }, [lastRefreshTime]);
 
   async function refreshAll() {
     await Promise.all([
@@ -161,9 +171,21 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
     setRuntime(nextRuntime);
   }
 
-  async function refreshDocuments() {
-    const documents = await listDocumentStatuses();
-    setDocumentStatuses(documents);
+  async function refreshDocuments(append = false) {
+    const limit = pageSize;
+    const offset = append ? documentStatuses.length : 0;
+    const documents = await listDocumentStatuses(limit, offset);
+    
+    if (append) {
+      setDocumentStatuses(prev => [...prev, ...documents]);
+    } else {
+      setDocumentStatuses(documents);
+    }
+    setHasMoreDocuments(documents.length === pageSize);
+  }
+
+  async function handleLoadMore() {
+    await refreshDocuments(true);
   }
 
   async function refreshProviderStatus() {
@@ -531,63 +553,71 @@ export default function AdvancedSettings({ onClose, initialSection = 'overview' 
                     )}
                   </div>
 
-                  <div className={styles.table}>
-                    {documentStatuses.map((row) => (
-                      <div key={row.document_id} className={styles.tableRow}>
-                        <input
-                          type="checkbox"
-                          className={styles.rowCheckbox}
-                          checked={selectedDocuments.has(row.document_id)}
-                          onChange={() => handleSelectDocument(row.document_id)}
-                        />
-                        <div className={styles.tableMain}>
-                          <button
-                            type="button"
-                            className={styles.titleLink}
-                            onClick={() => handleOpenPath(row.abs_path)}
-                          >
-                            {row.title || row.path.split('/').pop()}
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.pathLink}
-                            onClick={() => handleOpenPath(row.abs_path)}
-                          >
-                            {row.abs_path}
-                          </button>
-                        </div>
-                        <div className={styles.tableStats}>
-                          <span>{row.chunk_count} chunks</span>
-                          <span>{row.embedded_chunk_count} embedded</span>
-                          <span>{formatRelativeDate(row.last_indexed)}</span>
-                        </div>
-                        <div className={styles.rowActions}>
-                          <button
-                            type="button"
-                            className={styles.secondaryButton}
-                            disabled={row.failed_chunk_count === 0}
-                            onClick={() => handleRetryDocument(row.document_id)}
-                          >
-                            Retry
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.ghostDangerButton}
-                            onClick={() =>
-                              handleRemoveFile(row.document_id, row.title || row.path.split('/').pop() || 'file')
-                            }
-                          >
-                            Remove
-                          </button>
-                        </div>
-                        {row.last_error && (
-                          <div className={styles.errorBadge}>
-                            <span>⚠</span> {row.last_error}
+                    <div className={styles.table}>
+                      {documentStatuses.map((row) => (
+                        <div key={row.document_id} className={styles.tableRow}>
+                          <input
+                            type="checkbox"
+                            className={styles.rowCheckbox}
+                            checked={selectedDocuments.has(row.document_id)}
+                            onChange={() => handleSelectDocument(row.document_id)}
+                          />
+                          <div className={styles.tableMain}>
+                            <button
+                              type="button"
+                              className={styles.titleLink}
+                              onClick={() => handleOpenPath(row.abs_path)}
+                            >
+                              {row.title || row.path.split('/').pop()}
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.pathLink}
+                              onClick={() => handleOpenPath(row.abs_path)}
+                            >
+                              {row.abs_path}
+                            </button>
                           </div>
-                        )}
+                          <div className={styles.tableStats}>
+                            <span>{row.chunk_count} chunks</span>
+                            <span>{row.embedded_chunk_count} embedded</span>
+                            <span>{formatRelativeDate(row.last_indexed)}</span>
+                          </div>
+                          <div className={styles.rowActions}>
+                            <button
+                              type="button"
+                              className={styles.secondaryButton}
+                              disabled={row.failed_chunk_count === 0}
+                              onClick={() => handleRetryDocument(row.document_id)}
+                            >
+                              Retry
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.ghostDangerButton}
+                              onClick={() =>
+                                handleRemoveFile(row.document_id, row.title || row.path.split('/').pop() || 'file')
+                              }
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          {row.last_error && (
+                            <div className={styles.errorBadge}>
+                              <span>⚠</span> {row.last_error}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {hasMoreDocuments && (
+                      <div className={styles.loadMoreRow}>
+                        <button className={styles.secondaryButton} onClick={handleLoadMore}>
+                          Load More Documents
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    )}
                 </div>
               </section>
             )}

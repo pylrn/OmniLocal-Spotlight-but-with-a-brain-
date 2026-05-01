@@ -24,7 +24,7 @@
 - [x] **7. Issue 2: Embeddings Stored as JSON Strings in SQLite**
   - Refactor schema and insert/select logic to use `BLOB` (raw bytes) instead of JSON strings.
 
-- [ ] **8. Issue 1: Vector Search is O(n)**
+- [x] **8. Issue 1: Vector Search is O(n)**
   - Implement caching or replace naive dot-product loop with an ANN approach.
 
 - [x] **9. Issue 3: Global `Mutex<Connection>`**
@@ -33,8 +33,16 @@
 - [x] **10. Issue 4: API Key in Plaintext**
   - Move `gemini_api_key` to OS keychain storage.
 
-- [ ] **11. Issue 6 & 8: Split `lib.rs` and Add Trait Abstraction**
+- [x] **11. Issue 6 & 8: Split `lib.rs` and Add Trait Abstraction**
   - Refactor the codebase for maintainability.
 
 - [x] **12. Issue 7: Semantic Chunker is Dead Code**
   - Removed dead code functions from `chunker.rs`.
+
+- [x] **13. Frontend UI Lag & Crashes (Library View)**
+  - Implement virtualization or pagination in `Settings.tsx` to prevent rendering thousands of DOM nodes.
+  - Throttle/debounce the `refreshDocuments()` call triggered by `listenToEmbeddingProgress` to stop IPC event storms.
+
+- [x] **14. Backend IPC & DB Memory Optimization**
+  - Modify `listDocumentStatuses` in backend to support `limit` and `offset` for pagination, reducing JSON serialization payload.
+  - Fix Vector Search $O(n)$ RAM scan by fully implementing `sqlite-vec` HNSW indices (Related to Issue 8).
