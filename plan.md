@@ -673,68 +673,68 @@ The primary interface is a floating, always-accessible search bar triggered by a
 ### Phase 1: Foundation (Week 1–2)
 > Scaffold the project, database, and basic search
 
-- [ ] Initialize Tauri 2.0 + React + Vite project
-- [ ] Set up Rust workspace with all crate dependencies
-- [ ] Implement SQLite schema with `rusqlite` (tables, FTS5, triggers)
-- [ ] Build collection management (add/remove/list directories)
-- [ ] Implement basic file scanner (walk directory, store document metadata)
-- [ ] Wire up Tauri IPC commands for collections
+- [x] Initialize Tauri 2.0 + React + Vite project
+- [x] Set up Rust workspace with all crate dependencies
+- [x] Implement SQLite schema with `rusqlite` (tables, FTS5, triggers)
+- [x] Build collection management (add/remove/list directories)
+- [x] Implement basic file scanner (walk directory, store document metadata)
+- [x] Wire up Tauri IPC commands for collections
 
 ### Phase 2: AI Integration & Indexing (Week 3–4)
 > Connect to local providers first, implement chunking and embedding
 
-- [ ] Build Ollama API client (`/api/embed`, `/api/tags`, health check)
-- [ ] Build LM Studio API client (`/v1/embeddings`)
-- [ ] Build Gemini embedding client as an optional cloud provider
-- [ ] Implement provider abstraction with Ollama/LMStudio/Gemini backends
-- [ ] Implement semantic boundary chunking algorithm
-- [ ] Build indexing pipeline: scan → hash → chunk → mark pending → embed → store
-- [ ] Persist embeddings in SQLite with provider/model/dimension metadata
-- [ ] Add settings UI for model presets, API endpoints, and provider testing
+- [x] Build Ollama API client (`/api/embed`, `/api/tags`, health check)
+- [x] Build LM Studio API client (`/v1/embeddings`)
+- [x] Build Gemini embedding client as an optional cloud provider
+- [x] Implement provider abstraction with Ollama/LMStudio/Gemini backends
+- [x] Implement semantic boundary chunking algorithm
+- [x] Build indexing pipeline: scan → hash → chunk → mark pending → embed → store
+- [x] Persist embeddings in SQLite with provider/model/dimension metadata
+- [x] Add settings UI for model presets, API endpoints, and provider testing
 
 ### Phase 3: Search Engine (Week 5–6)
 > BM25 + vector + fusion + results UI
 
-- [ ] Implement BM25 search via FTS5
-- [ ] Implement vector similarity search over persisted local embeddings
-- [ ] Build RRF fusion algorithm
-- [ ] Build the Spotlight-style search UI (SearchBar, ResultsList, ResultCard)
-- [ ] Wire search results through Tauri IPC
-- [ ] Add result previews with snippet highlighting
-- [ ] Register global hotkey (`Cmd+Shift+Space`)
+- [x] Implement BM25 search via FTS5
+- [x] Implement vector similarity search over persisted local embeddings
+- [x] Build RRF fusion algorithm
+- [x] Build the Spotlight-style search UI (SearchBar, ResultsList, ResultCard)
+- [x] Wire search results through Tauri IPC
+- [x] Add result previews with snippet highlighting
+- [x] Register global hotkey (`Cmd+Shift+Space`)
 
 ### Phase 4: Real-Time File Watching (Week 7)
 > Event-driven background indexing
 
-- [ ] Implement file watcher service using `notify` crate
-- [ ] Add debounce logic (500ms window)
-- [ ] Build `blake3` content hash comparison for change detection
-- [ ] Implement incremental re-indexing (only changed files)
-- [ ] Build background queue with `tokio::mpsc`
-- [ ] Emit Tauri events for indexing progress
-- [ ] Add StatusBar component showing live indexing status
-- [ ] Expose per-document embedding progress and failure state in Settings
+- [x] Implement file watcher service using `notify` crate
+- [x] Add debounce logic (500ms window)
+- [x] Build `blake3` content hash comparison for change detection
+- [x] Implement incremental re-indexing (only changed files)
+- [x] Build background queue with `tokio::mpsc`
+- [x] Emit Tauri events for indexing progress
+- [x] Add StatusBar component showing live indexing status
+- [x] Expose per-document embedding progress and failure state in Settings
 
 ### Phase 5: Active Context & Re-ranking (Week 8)
 > Desktop-native intelligence features
 
-- [ ] Implement macOS foreground app detection via `objc2`/`NSWorkspace`
-- [ ] Build active-context boost scoring logic
-- [ ] Integrate boost into RRF fusion step
-- [ ] Implement LLM re-ranking via Ollama (optional, toggle in settings)
-- [ ] Add "Context Boost" indicator in search results UI
-- [ ] Handle Accessibility permission flow gracefully
+- [x] Implement macOS foreground app detection via `objc2`/`NSWorkspace`
+- [x] Build active-context boost scoring logic
+- [x] Integrate boost into RRF fusion step
+- [x] Implement LLM re-ranking via Ollama (optional, toggle in settings)
+- [x] Add "Context Boost" indicator in search results UI
+- [x] Handle Accessibility permission flow gracefully
 
 ### Phase 6: Polish & MCP (Week 9–10)
 > Production quality, MCP server, edge cases
 
-- [ ] Implement dark/light theme toggle
-- [ ] Add micro-animations (result appear, hover, score bars)
-- [ ] Implement glassmorphism for the search window
-- [ ] Build MCP server for agent integration (optional parity with qmd)
-- [ ] Handle edge cases (large files, binary files, permission errors)
-- [ ] Performance optimization (batch embedding, query caching)
-- [ ] Write integration tests
+- [x] Implement dark/light theme toggle
+- [x] Add micro-animations (result appear, hover, score bars)
+- [x] Implement glassmorphism for the search window
+- [x] Build MCP server for agent integration (optional parity with qmd)
+- [x] Handle edge cases (large files, binary files, permission errors)
+- [x] Performance optimization (batch embedding, query caching)
+- [x] Write integration tests
 - [ ] Build first release binary
 
 ---
