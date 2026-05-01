@@ -61,12 +61,12 @@
 │  │   └── Embedding generator (Ollama API client)               │
 │  ├── Search Engine                                             │
 │  │   ├── BM25 via SQLite FTS5                                  │
-│  │   ├── Vector search via sqlite-vec                          │
+│  │   ├── Vector search via persisted local embeddings          │
 │  │   ├── RRF fusion + active-context boosting                  │
 │  │   └── LLM re-ranking (optional, via Ollama)                 │
 │  ├── Active Context Detector                                   │
 │  │   └── macOS: NSWorkspace → foreground app name              │
-│  └── SQLite (rusqlite + FTS5 + sqlite-vec)                     │
+│  └── SQLite (rusqlite + FTS5 + local embedding store)          │
 └─────────────────────────────────────────────────────────────────┘
          │                              │
          ▼                              ▼
@@ -85,7 +85,7 @@
 | `tauri` 2.x | App framework, IPC, window management, global shortcuts |
 | `notify` 7.x | Cross-platform filesystem watching |
 | `rusqlite` + `bundled` | Embedded SQLite with FTS5 support |
-| `sqlite-vec` | Vector similarity search within SQLite |
+| Local JSON vectors in SQLite | v1 vector persistence with simple cosine search in Rust |
 | `reqwest` | HTTP client for Ollama/LM Studio APIs |
 | `tokio` | Async runtime, channels, background tasks |
 | `serde` / `serde_json` | JSON serialization for API communication |
@@ -438,6 +438,14 @@ final_score = rrf_score * (1.0 + active_context_boost)
 
 ### Feature 3: BYOM (Bring Your Own Model) via API
 
+> **Current implementation decision**: SmartSearch is now **local-first by default**.
+> The shipping default embedding model is **`nomic-embed-text`** via Ollama because it offers the best practical speed/quality tradeoff for desktop indexing. The UI should also expose:
+> - **Fast preset**: `nomic-embed-text`
+> - **Quality preset**: `mxbai-embed-large`
+> - **Multilingual preset**: `bge-m3`
+>
+> Gemini remains supported as an optional cloud provider, but the product should not depend on it for the core semantic search experience.
+
 ```
 ┌────────────────────────────────────────────────────────────┐
 │             AI PROVIDER ABSTRACTION LAYER                  │
@@ -456,15 +464,15 @@ final_score = rrf_score * (1.0 + active_context_boost)
 │  }                                                         │
 │                                                            │
 ├──────────────┬─────────────────┬──────────────────────────┤
-│   Ollama     │   LM Studio     │   Future: OpenAI-compat  │
+│   Ollama     │   LM Studio     │   Gemini (optional)     │
 │              │                  │                          │
 │ POST /api/   │ POST /v1/       │ POST /v1/embeddings      │
 │   embed      │   embeddings    │                          │
 │              │                  │                          │
 │ Models:      │ Models:          │                          │
-│ nomic-embed  │ Whatever user    │                          │
-│ mxbai-embed  │ has loaded       │                          │
-│ all-minilm   │                  │                          │
+│ nomic-embed  │ Whatever user    │ models/gemini-          │
+│ mxbai-embed  │ has loaded       │ embedding-001           │
+│ bge-m3       │                  │                          │
 └──────────────┴─────────────────┴──────────────────────────┘
 ```
 
@@ -490,6 +498,12 @@ Response:
 
 > [!NOTE]
 > By not bundling any AI model, SmartSearch stays under **10 MB** compared to qmd's 500MB+ with bundled GGUF models. The user just needs Ollama (which they likely already have).
+
+**Practical architecture note**:
+- File types are handled by the indexing pipeline, not the model directly.
+- The model only receives extracted text chunks.
+- v1 should support text/code files, `pdf`, and `docx` through file-type-specific extraction before chunking and embedding.
+- Code files should eventually get structure-aware chunking, but fixed-size chunking is acceptable while the embedding pipeline is being stabilized.
 
 ---
 
@@ -568,7 +582,7 @@ Result: Two coherent, topically focused chunks instead of
     ▼         ▼
 ┌────────┐ ┌──────────┐
 │ BM25   │ │ Vector   │
-│ FTS5   │ │sqlite-vec│
+│ FTS5   │ │Local vec │
 │ top 30 │ │ top 30   │
 └───┬────┘ └────┬─────┘
     │            │
@@ -667,21 +681,22 @@ The primary interface is a floating, always-accessible search bar triggered by a
 - [ ] Wire up Tauri IPC commands for collections
 
 ### Phase 2: AI Integration & Indexing (Week 3–4)
-> Connect to Ollama, implement chunking and embedding
+> Connect to local providers first, implement chunking and embedding
 
 - [ ] Build Ollama API client (`/api/embed`, `/api/tags`, health check)
 - [ ] Build LM Studio API client (`/v1/embeddings`)
-- [ ] Implement `EmbeddingProvider` trait with Ollama/LMStudio backends
+- [ ] Build Gemini embedding client as an optional cloud provider
+- [ ] Implement provider abstraction with Ollama/LMStudio/Gemini backends
 - [ ] Implement semantic boundary chunking algorithm
-- [ ] Build indexing pipeline: scan → hash → chunk → embed → store
-- [ ] Integrate `sqlite-vec` for vector storage
-- [ ] Add settings UI for model selection and API endpoints
+- [ ] Build indexing pipeline: scan → hash → chunk → mark pending → embed → store
+- [ ] Persist embeddings in SQLite with provider/model/dimension metadata
+- [ ] Add settings UI for model presets, API endpoints, and provider testing
 
 ### Phase 3: Search Engine (Week 5–6)
 > BM25 + vector + fusion + results UI
 
 - [ ] Implement BM25 search via FTS5
-- [ ] Implement vector similarity search via `sqlite-vec`
+- [ ] Implement vector similarity search over persisted local embeddings
 - [ ] Build RRF fusion algorithm
 - [ ] Build the Spotlight-style search UI (SearchBar, ResultsList, ResultCard)
 - [ ] Wire search results through Tauri IPC
@@ -698,6 +713,7 @@ The primary interface is a floating, always-accessible search bar triggered by a
 - [ ] Build background queue with `tokio::mpsc`
 - [ ] Emit Tauri events for indexing progress
 - [ ] Add StatusBar component showing live indexing status
+- [ ] Expose per-document embedding progress and failure state in Settings
 
 ### Phase 5: Active Context & Re-ranking (Week 8)
 > Desktop-native intelligence features
@@ -724,6 +740,12 @@ The primary interface is a floating, always-accessible search bar triggered by a
 ---
 
 ## Open Questions
+
+> [!NOTE]
+> The following are still worth revisiting, but the current implementation direction assumes:
+> - **Local-first embeddings**
+> - **`nomic-embed-text` as the default local model**
+> - **BM25 fallback when embeddings are unavailable**
 
 > [!IMPORTANT]
 > **1. Global Hotkey Conflict**: `Cmd+Space` is taken by macOS Spotlight. Should we default to `Cmd+Shift+Space`, `Option+Space`, or let the user configure it during onboarding?

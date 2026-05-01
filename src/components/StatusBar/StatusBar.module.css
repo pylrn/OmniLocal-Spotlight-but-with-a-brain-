@@ -1,61 +1,148 @@
-/* StatusBar — Bottom status indicator */
-
 .statusBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-sm) var(--space-lg);
-  background: var(--bg-secondary);
+  gap: 0.75rem;
+  padding: 0.6rem 1.2rem 0.7rem;
   border-top: 1px solid var(--border-color);
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-  gap: var(--space-md);
+  background: var(--bg-secondary);
+  backdrop-filter: blur(16px);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
   flex-shrink: 0;
 }
 
-.statusGroup {
+.statusCluster {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: 0.8rem;
+  flex-wrap: wrap;
 }
 
-.statusItem {
-  display: flex;
+.settingsButton,
+.metricCard,
+.statusPill,
+.pendingBlock {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: 0.55rem;
+  padding: 0.62rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  transition: var(--transition-base);
+}
+
+.settingsButton {
+  cursor: pointer;
+  color: var(--accent-secondary);
+  font-weight: 600;
+}
+
+.settingsButton:hover {
+  transform: translateY(-2px);
+  background: var(--bg-elevated);
+  box-shadow: var(--glow-orange);
+}
+
+.settingsIcon {
+  font-size: 1rem;
+}
+
+.metricCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 6.2rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  background: var(--bg-elevated);
+  box-shadow: var(--glow-purple);
+  border-color: var(--accent-primary);
+}
+
+.metricCard strong {
+  color: var(--accent-primary);
+  font-size: 0.98rem;
+  text-shadow: var(--glow-pink);
+}
+
+.metricLabel {
+  color: var(--text-tertiary);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.statusPill {
+  color: var(--text-primary);
+}
+
+.pendingBlock {
+  gap: 0.95rem;
+  cursor: pointer;
+}
+
+.pendingBlock:hover {
+  transform: translateY(-2px);
+  background: var(--bg-elevated);
+  box-shadow: var(--glow-purple);
 }
 
 .statusDot {
-  width: 6px;
-  height: 6px;
+  width: 0.55rem;
+  height: 0.55rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .statusDotGreen {
   background: var(--status-success);
-  box-shadow: 0 0 6px var(--status-success);
+  box-shadow: 0 0 10px var(--status-success);
 }
 
 .statusDotYellow {
   background: var(--status-warning);
-  box-shadow: 0 0 6px var(--status-warning);
+  box-shadow: 0 0 10px var(--status-warning);
 }
 
 .statusDotRed {
   background: var(--status-error);
-  box-shadow: 0 0 6px var(--status-error);
+  box-shadow: 0 0 10px var(--status-error);
 }
 
 .statusDotGray {
   background: var(--text-tertiary);
 }
 
-.statusPending {
-  animation: pulse 1.5s ease-in-out infinite;
+.statusDotPulse {
+  background: var(--accent-secondary);
+  box-shadow: 0 0 14px var(--accent-secondary);
+  animation: pulse 1.4s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.72);
+    opacity: 0.42;
+  }
+}
+
+@media (max-width: 900px) {
+  .statusBar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.85rem 1rem 1rem;
+  }
 }

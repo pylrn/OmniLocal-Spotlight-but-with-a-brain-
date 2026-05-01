@@ -1,9 +1,7 @@
 // SmartSearch — Typed IPC Wrappers
-import { invoke } from '@tauri-apps/api/core';
 
-// ═══════════════════════════════════════════════════════════════
-// Types
-// ═══════════════════════════════════════════════════════════════
+import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
 export interface Collection {
   id: number;
@@ -24,6 +22,21 @@ export interface DocumentRow {
   file_type: string;
   file_size: number;
   collection_name: string;
+}
+
+export interface DocumentStatusRow {
+  document_id: number;
+  title: string | null;
+  path: string;
+  abs_path: string;
+  file_type: string;
+  collection_name: string;
+  chunk_count: number;
+  embedded_chunk_count: number;
+  pending_chunk_count: number;
+  failed_chunk_count: number;
+  last_indexed: string | null;
+  last_error: string | null;
 }
 
 export interface SearchResult {
@@ -57,19 +70,54 @@ export interface IndexStats {
   total_documents: number;
   total_chunks: number;
   embedded_chunks: number;
+  pending_chunks: number;
+  failed_chunks: number;
 }
 
 export interface ProviderStatus {
   connected: boolean;
-  provider: 'Ollama' | 'LMStudio';
+  provider: 'Ollama' | 'LMStudio' | 'Gemini';
   model_available: boolean;
   model_name: string;
+  dimensions: number | null;
   error: string | null;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// IPC Functions
-// ═══════════════════════════════════════════════════════════════
+export interface ProviderHealth {
+  provider: string;
+  model_name: string;
+  connected: boolean;
+  model_available: boolean;
+  dimensions: number | null;
+  error: string | null;
+}
+
+export interface IndexOverview {
+  db_path: string;
+  total_collections: number;
+  total_documents: number;
+  total_chunks: number;
+  embedded_chunks: number;
+  pending_chunks: number;
+  failed_chunks: number;
+  watcher_enabled: boolean;
+  provider_status: ProviderHealth;
+  last_indexed_at: string | null;
+}
+
+export interface EmbeddingRuntimeStatus {
+  phase: string;
+  current_title: string | null;
+  current_path: string | null;
+  provider: string | null;
+  model: string | null;
+  message: string;
+}
+
+export interface EmbeddingProgressEvent {
+  runtime: EmbeddingRuntimeStatus;
+  stats: IndexStats;
+}
 
 export async function addCollection(
   name: string,
@@ -101,6 +149,10 @@ export async function listIndexedFiles(): Promise<DocumentRow[]> {
   return invoke('list_indexed_files');
 }
 
+export async function listDocumentStatuses(): Promise<DocumentStatusRow[]> {
+  return invoke('list_document_statuses');
+}
+
 export async function removeManualFile(documentId: number): Promise<void> {
   return invoke('remove_manual_file', { documentId });
 }
@@ -109,10 +161,7 @@ export async function scanCollections(): Promise<ScanResult[]> {
   return invoke('scan_collections');
 }
 
-export async function searchKeyword(
-  query: string,
-  limit?: number,
-): Promise<SearchResult[]> {
+export async function searchKeyword(query: string, limit?: number): Promise<SearchResult[]> {
   return invoke('search_keyword', { query, limit: limit || null });
 }
 
@@ -120,8 +169,20 @@ export async function getIndexStats(): Promise<IndexStats> {
   return invoke('get_index_stats');
 }
 
+export async function getIndexOverview(): Promise<IndexOverview> {
+  return invoke('get_index_overview');
+}
+
+export async function getEmbeddingRuntime(): Promise<EmbeddingRuntimeStatus> {
+  return invoke('get_embedding_runtime');
+}
+
 export async function checkAiStatus(): Promise<ProviderStatus> {
   return invoke('check_ai_status');
+}
+
+export async function testAiProvider(): Promise<ProviderStatus> {
+  return invoke('test_ai_provider');
 }
 
 export async function getSetting(key: string): Promise<string | null> {
@@ -132,13 +193,41 @@ export async function setSetting(key: string, value: string): Promise<void> {
   return invoke('set_setting', { key, value });
 }
 
+export async function retryFailedEmbeddings(): Promise<void> {
+  return invoke('retry_failed_embeddings');
+}
+
+export async function reembedAll(): Promise<void> {
+  return invoke('reembed_all');
+}
+
 export async function getForegroundApp(): Promise<string | null> {
   return invoke('get_foreground_app');
 }
 
-// ═══════════════════════════════════════════════════════════════
-// Helpers
-// ═══════════════════════════════════════════════════════════════
+export interface ContextSnippet {
+  snippet: string;
+  path: string;
+}
+
+export async function queryWithContext(
+  query: string,
+  snippets: ContextSnippet[],
+): Promise<string> {
+  return invoke('query_with_context', { query, snippets });
+}
+
+export function listenToEmbeddingProgress(
+  handler: (payload: EmbeddingProgressEvent) => void,
+): Promise<UnlistenFn> {
+  return listen<EmbeddingProgressEvent>('embedding-progress', (event) => handler(event.payload));
+}
+
+export function listenToIndexProgress(
+  handler: (payload: unknown) => void,
+): Promise<UnlistenFn> {
+  return listen('index-progress', (event) => handler(event.payload));
+}
 
 export function getFileTypeColor(fileType: string): string {
   const colors: Record<string, string> = {
@@ -151,29 +240,33 @@ export function getFileTypeColor(fileType: string): string {
     py: 'var(--filetype-py)',
     rs: 'var(--filetype-rs)',
     go: 'var(--filetype-go)',
+    pdf: 'var(--filetype-pdf)',
+    docx: 'var(--filetype-docx)',
   };
   return colors[fileType] || 'var(--filetype-default)';
 }
 
 export function getFileTypeIcon(fileType: string): string {
   const icons: Record<string, string> = {
-    md: '📄',
-    markdown: '📄',
-    ts: '🔧',
-    tsx: '🔧',
-    js: '🔧',
-    jsx: '🔧',
-    py: '🐍',
-    rs: '⚙️',
-    go: '🔵',
-    txt: '📝',
-    json: '{ }',
-    yaml: '📋',
-    yml: '📋',
-    html: '🌐',
-    css: '🎨',
+    md: 'Document',
+    markdown: 'Document',
+    ts: 'Code',
+    tsx: 'Code',
+    js: 'Code',
+    jsx: 'Code',
+    py: 'Python',
+    rs: 'Rust',
+    go: 'Go',
+    txt: 'Text',
+    json: 'JSON',
+    yaml: 'YAML',
+    yml: 'YAML',
+    html: 'HTML',
+    css: 'CSS',
+    pdf: 'PDF',
+    docx: 'DOCX',
   };
-  return icons[fileType] || '📄';
+  return icons[fileType] || 'File';
 }
 
 export function formatScore(score: number): string {
@@ -184,4 +277,23 @@ export function getScoreColor(score: number): string {
   if (score >= 0.7) return 'var(--score-high)';
   if (score >= 0.4) return 'var(--score-medium)';
   return 'var(--score-low)';
+}
+
+export function formatRelativeDate(value: string | null): string {
+  if (!value) return 'Never';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.round(diffMs / 60000);
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.round(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = Math.round(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString();
 }

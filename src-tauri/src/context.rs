@@ -5,14 +5,11 @@
 #[cfg(target_os = "macos")]
 pub fn get_foreground_app() -> Option<String> {
     use objc2_app_kit::NSWorkspace;
-    use objc2_foundation::NSString;
 
-    unsafe {
-        let workspace = NSWorkspace::sharedWorkspace();
-        let front_app = workspace.frontmostApplication()?;
-        let name = front_app.localizedName()?;
-        Some(name.to_string())
-    }
+    let workspace = NSWorkspace::sharedWorkspace();
+    let front_app = workspace.frontmostApplication()?;
+    let name = front_app.localizedName()?;
+    Some(name.to_string())
 }
 
 #[cfg(not(target_os = "macos"))]

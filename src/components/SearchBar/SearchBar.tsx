@@ -62,14 +62,20 @@ export default function SearchBar({
 
   return (
     <div className={styles.searchBarContainer}>
+      <div className={styles.searchLead}>
+        <span className={styles.searchEyebrow}>Hybrid desktop search</span>
+        <span className={styles.searchSupport}>
+          BM25 + embeddings + active context boosts
+        </span>
+      </div>
       <div className={styles.searchInputWrapper}>
-        <span className={styles.searchIcon}>🔍</span>
+        <span className={styles.searchIcon}>⌕</span>
         <input
           ref={inputRef}
           id="search-input"
           className={styles.searchInput}
           type="text"
-          placeholder="Search your knowledge..."
+          placeholder="Search notes, code, docs, and standalone files..."
           value={query}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
@@ -82,9 +88,9 @@ export default function SearchBar({
             id="add-files-button"
             className={styles.actionButton}
             onClick={onAddFilesClick}
-            title="Add File(s) to Index"
+            title="Add file(s) to index"
           >
-            +
+            Add files
           </button>
         </div>
       </div>

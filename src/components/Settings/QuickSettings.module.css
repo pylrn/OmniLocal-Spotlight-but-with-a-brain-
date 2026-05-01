@@ -1,0 +1,136 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 10, 29, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popover {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  width: 340px;
+  padding: var(--space-lg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), var(--glow-purple);
+  position: relative;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.header h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  color: var(--accent-primary);
+  text-shadow: var(--glow-pink);
+}
+
+.closeBtn {
+  font-size: 1.5rem;
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
+.closeBtn:hover {
+  color: var(--accent-primary);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.field label {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.field input, .field select {
+  width: 100%;
+}
+
+.status {
+  padding: var(--space-sm);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.connected {
+  color: var(--status-success);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.disconnected {
+  color: var(--status-error);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.saveBtn {
+  background: var(--accent-primary);
+  color: white;
+  padding: 0.8rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  box-shadow: var(--glow-pink);
+}
+
+.saveBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.advancedBtn {
+  font-size: var(--font-size-xs);
+  color: var(--accent-secondary);
+  font-weight: 500;
+  padding: var(--space-xs);
+}
+
+.advancedBtn:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
