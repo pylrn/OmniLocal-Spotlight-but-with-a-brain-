@@ -17,7 +17,7 @@ SmartSearch is a high-performance, lightweight desktop search utility built with
 - **BYOM (Bring Your Own Model)**: Unlike other tools that bundle 500MB+ of weights, SmartSearch connects to your local **Ollama** or **LM Studio** instance.
 
 ### 🧠 Intelligent Semantic Search
-- **Semantic Chunking**: Uses cosine similarity to find natural topic boundaries in your documents, avoiding mid-sentence cuts.
+- **Semantic Chunking**: Uses local embedding model connected to ollama to find natural topic boundaries in your documents, avoiding mid-sentence cuts.
 - **Hybrid Ranking**: Blends **BM25 (Keyword)** and **Vector (Semantic)** search using Reciprocal Rank Fusion (RRF) for the most accurate results.
 - **Active Context Boosting**: Automatically detects your foreground application (e.g., VS Code, Obsidian) and boosts relevant file types in real-time.
 
